@@ -8,7 +8,7 @@ import {
     faPause
 } from '@fortawesome/free-solid-svg-icons'
 
-const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying }) => {
+const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurrentSong }) => {
     //States
     const [songInfo, setSongInfo] = useState({
         currentTime: 0,
@@ -37,6 +37,24 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying }) => {
         setSongInfo({...songInfo, currentTime: e.target.value})
     }
 
+    //Handler skip back(-1) or forward(1)
+    const skipTrackHandler = (direction) => {
+        if (typeof direction !== 'number') {
+            return
+        } 
+
+        let index = songs.indexOf(currentSong) + direction
+        
+        if (index < 0) {
+            index = songs.length - 1
+        }
+        if (index > songs.length - 1) {
+            index = 0
+        }
+        setCurrentSong(songs[index])
+
+    }
+
     //Conver time to MM:SS
     const formatTime = (time) => {
         return Math.floor(time/ 60) + ':' + ('0' + Math.floor(time % 60)).slice(-2)
@@ -57,15 +75,21 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying }) => {
             </div>
 
             <div className='play-control'>
-                <FontAwesomeIcon className='skip-back' size='2x' icon={faAngleLeft} />
+                <FontAwesomeIcon 
+                    onClick={() => skipTrackHandler(-1)}
+                    className='skip-back' size='2x' icon={faAngleLeft} />
                 <FontAwesomeIcon onClick={playSongHandler} className='play' size='2x' icon={isPlaying ? faPause : faPlay} />
-                <FontAwesomeIcon className='skip-forward' size='2x' icon={faAngleRight} />
+                <FontAwesomeIcon 
+                    onClick={() => skipTrackHandler(1)}
+                    className='skip-forward' size='2x' icon={faAngleRight} />
             </div>
+            
             <audio 
                 onTimeUpdate={timeUpdateHandler}
                 onLoadedMetadata={timeUpdateHandler}
                 ref={audioRef} 
-                src={currentSong.audio} />
+                src={currentSong.audio} 
+            />
         </div>
      );
 }
