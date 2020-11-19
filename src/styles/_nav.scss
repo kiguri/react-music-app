@@ -22,3 +22,11 @@
         }
     }
 }
+
+@media screen and (max-width: 768px) {
+    .top-nav {
+        button {
+            z-index: 10;
+        }
+    }
+}

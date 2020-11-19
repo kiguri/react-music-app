@@ -6,10 +6,18 @@
     justify-content: center;
 
     img {
-        width: 20%;
+        width: 370px;
         border-radius: 50%;
     };
     h2 {
         padding: 3rem 1rem 1rem 1rem
     }
+
+
+    @media screen and (max-width: 768px) {
+        img {
+            width: 50%;
+        }
+    }
 }
+

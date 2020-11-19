@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
@@ -9,11 +9,27 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurrentSong }) => {
+    //Ref
+    const requestRef = useRef()
     //States
     const [songInfo, setSongInfo] = useState({
         currentTime: 0,
-        duration: 0
+        duration: 0,
     })
+    const [animationPercent, setAnimationPercent] = useState(0)
+    const [styleTransform, setStyleTransform] = useState({})
+
+    useLayoutEffect(() => {
+        const animate = () => {
+            setStyleTransform({
+                transform: `translateX(${animationPercent}%)`
+            })
+            requestRef.current = requestAnimationFrame(animate)
+        }
+        requestRef.current = requestAnimationFrame(animate)
+        return () => cancelAnimationFrame(requestRef.current)
+    }, [animationPercent])
+
 
     //Playsong handler
     const playHandler = () => {
@@ -42,10 +58,20 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurr
 
     //Time update handler
     const timeUpdateHandler = e => {
+        const currentTime = e.target.currentTime
+        const duration = e.target.duration
+       
+        setAnimationPercent((currentTime / duration) * 100)
+
         setSongInfo({
             ...songInfo,
-            currentTime: e.target.currentTime
+            currentTime
         })
+    }
+
+    //Song ended handler
+    const songEndHandler = () => {
+        skipHandler(1)
     }
 
     //Drag handler
@@ -70,7 +96,6 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurr
         }
         
         setCurrentSong(songs[index])
-        
     }
 
     //Conver time to MM:SS
@@ -82,13 +107,18 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurr
         <div className='player'>
             <div className='time-control'>
                 <p>{formatTime(songInfo.currentTime)}</p>
-                <input 
-                    type='range'
-                    min={0} 
-                    max={songInfo.duration}
-                    value={songInfo.currentTime}
-                    onChange={dragHandler}
-                />
+                <div 
+                    style={{background: `linear-gradient(to right, ${currentSong.color[0]}, ${currentSong.color[1]})`}} 
+                    className='track'>
+                    <input 
+                        type='range'
+                        min={0} 
+                        max={songInfo.duration}
+                        value={songInfo.currentTime}
+                        onChange={dragHandler}
+                    />
+                    <div style={styleTransform} className='animate-track'></div>
+                </div>
                 <p>{formatTime(songInfo.duration)}</p>
             </div>
 
@@ -103,11 +133,12 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurr
             </div>
             
             <audio 
-                onLoadedMetadata={timeLoadHandler}
-                onTimeUpdate={timeUpdateHandler}
-                onLoadedData={autoPlayHandler}
                 ref={audioRef} 
                 src={currentSong.audio} 
+                onLoadedMetadata={timeLoadHandler}
+                onLoadedData={autoPlayHandler}
+                onTimeUpdate={timeUpdateHandler}
+                onEnded={songEndHandler}
             />
         </div>
      );
