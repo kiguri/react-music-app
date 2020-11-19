@@ -16,7 +16,7 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurr
     })
 
     //Playsong handler
-    const playSongHandler = () => {
+    const playHandler = () => {
         isPlaying 
         ? audioRef.current.pause()
         : audioRef.current.play()
@@ -24,11 +24,28 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurr
         setIsPlaying(!isPlaying)
     }
 
+    //auto play when skip or select song
+    const autoPlayHandler = () => {
+        if (!isPlaying)
+            return
+        audioRef.current.play()
+    }
+
+    //Time load handler 
+    const timeLoadHandler = e => {
+        setSongInfo({
+            ...songInfo,
+            currentTime: e.target.currentTime,
+            duration: e.target.duration
+        })
+    }
+
     //Time update handler
     const timeUpdateHandler = e => {
-        const currentTime = e.target.currentTime
-        const duration = e.target.duration
-        setSongInfo({ currentTime, duration })
+        setSongInfo({
+            ...songInfo,
+            currentTime: e.target.currentTime
+        })
     }
 
     //Drag handler
@@ -38,21 +55,22 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurr
     }
 
     //Handler skip back(-1) or forward(1)
-    const skipTrackHandler = (direction) => {
+    const skipHandler = (direction) => {
         if (typeof direction !== 'number') {
             return
         } 
 
         let index = songs.indexOf(currentSong) + direction
-        
+
         if (index < 0) {
             index = songs.length - 1
         }
         if (index > songs.length - 1) {
             index = 0
         }
+        
         setCurrentSong(songs[index])
-
+        
     }
 
     //Conver time to MM:SS
@@ -67,26 +85,27 @@ const Player = ({ audioRef, currentSong, isPlaying, setIsPlaying, songs, setCurr
                 <input 
                     type='range'
                     min={0} 
-                    max={songInfo.duration || 0}
+                    max={songInfo.duration}
                     value={songInfo.currentTime}
                     onChange={dragHandler}
                 />
-                <p>{formatTime(songInfo.duration || 0)}</p>
+                <p>{formatTime(songInfo.duration)}</p>
             </div>
 
             <div className='play-control'>
                 <FontAwesomeIcon 
-                    onClick={() => skipTrackHandler(-1)}
+                    onClick={() => skipHandler(-1)}
                     className='skip-back' size='2x' icon={faAngleLeft} />
-                <FontAwesomeIcon onClick={playSongHandler} className='play' size='2x' icon={isPlaying ? faPause : faPlay} />
+                <FontAwesomeIcon onClick={playHandler} className='play' size='2x' icon={isPlaying ? faPause : faPlay} />
                 <FontAwesomeIcon 
-                    onClick={() => skipTrackHandler(1)}
+                    onClick={() => skipHandler(1)}
                     className='skip-forward' size='2x' icon={faAngleRight} />
             </div>
             
             <audio 
+                onLoadedMetadata={timeLoadHandler}
                 onTimeUpdate={timeUpdateHandler}
-                onLoadedMetadata={timeUpdateHandler}
+                onLoadedData={autoPlayHandler}
                 ref={audioRef} 
                 src={currentSong.audio} 
             />
