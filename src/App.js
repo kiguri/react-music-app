@@ -18,7 +18,7 @@ function App() {
   const [songs, setSongs] = useState(data);
   const [currentSong, setCurrentSong] = useState(songs[0]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [libraryStatus, setLibraryStatus] = useState(false);
+  const [libraryStatus, setLibraryStatus] = useState(true);
 
   return (
     <div className={`App ${libraryStatus ? "library-active" : ""}`}>
